@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  autocoder:
+    build: .
+    container_name: autocoder
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Persist generated projects
+      - autocoder-generations:/app/generations
+      # Persist Claude auth/config (if using claude login)
+      - autocoder-claude:/root/.claude
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  autocoder-generations:
+  autocoder-claude:
