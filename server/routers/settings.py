@@ -9,17 +9,16 @@ Settings are stored in the registry database and shared across all projects.
 import mimetypes
 import os
 import sys
-from pathlib import Path
 
 from fastapi import APIRouter
 
 from ..schemas import ModelInfo, ModelsResponse, SettingsResponse, SettingsUpdate
+from ..services.chat_constants import ROOT_DIR
 
 # Mimetype fix for Windows - must run before StaticFiles is mounted
 mimetypes.add_type("text/javascript", ".js", True)
 
-# Add root to path for registry import
-ROOT_DIR = Path(__file__).parent.parent.parent
+# Ensure root is on sys.path for registry import
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
@@ -92,6 +91,8 @@ async def get_settings():
         glm_mode=_is_glm_mode(),
         ollama_mode=_is_ollama_mode(),
         testing_agent_ratio=_parse_int(all_settings.get("testing_agent_ratio"), 1),
+        playwright_headless=_parse_bool(all_settings.get("playwright_headless"), default=True),
+        batch_size=_parse_int(all_settings.get("batch_size"), 3),
     )
 
 
@@ -107,6 +108,12 @@ async def update_settings(update: SettingsUpdate):
     if update.testing_agent_ratio is not None:
         set_setting("testing_agent_ratio", str(update.testing_agent_ratio))
 
+    if update.playwright_headless is not None:
+        set_setting("playwright_headless", "true" if update.playwright_headless else "false")
+
+    if update.batch_size is not None:
+        set_setting("batch_size", str(update.batch_size))
+
     # Return updated settings
     all_settings = get_all_settings()
     return SettingsResponse(
@@ -115,4 +122,6 @@ async def update_settings(update: SettingsUpdate):
         glm_mode=_is_glm_mode(),
         ollama_mode=_is_ollama_mode(),
         testing_agent_ratio=_parse_int(all_settings.get("testing_agent_ratio"), 1),
+        playwright_headless=_parse_bool(all_settings.get("playwright_headless"), default=True),
+        batch_size=_parse_int(all_settings.get("batch_size"), 3),
     )

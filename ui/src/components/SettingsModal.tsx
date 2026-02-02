@@ -41,6 +41,12 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     }
   }
 
+  const handleBatchSizeChange = (size: number) => {
+    if (!updateSettings.isPending) {
+      updateSettings.mutate({ batch_size: size })
+    }
+  }
+
   const models = modelsData?.models ?? []
   const isSaving = updateSettings.isPending
 
@@ -171,6 +177,24 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               />
             </div>
 
+            {/* Headless Browser Toggle */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="playwright-headless" className="font-medium">
+                  Headless Browser
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Run browser without visible window (saves CPU)
+                </p>
+              </div>
+              <Switch
+                id="playwright-headless"
+                checked={settings.playwright_headless}
+                onCheckedChange={() => updateSettings.mutate({ playwright_headless: !settings.playwright_headless })}
+                disabled={isSaving}
+              />
+            </div>
+
             {/* Model Selection */}
             <div className="space-y-2">
               <Label className="font-medium">Model</Label>
@@ -211,6 +235,30 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     {ratio}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Features per Agent */}
+            <div className="space-y-2">
+              <Label className="font-medium">Features per Agent</Label>
+              <p className="text-sm text-muted-foreground">
+                Number of features assigned to each coding agent
+              </p>
+              <div className="flex rounded-lg border overflow-hidden">
+                {[1, 2, 3].map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => handleBatchSizeChange(size)}
+                    disabled={isSaving}
+                    className={`flex-1 py-2 px-3 text-sm font-medium transition-colors ${
+                      (settings.batch_size ?? 1) === size
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-background text-foreground hover:bg-muted'
+                    } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {size}
                   </button>
                 ))}
               </div>

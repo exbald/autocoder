@@ -15,7 +15,7 @@ import sys
 import threading
 from datetime import datetime
 from pathlib import Path
-from typing import Awaitable, Callable, Literal, Set
+from typing import Any, Awaitable, Callable, Literal, Set
 
 import psutil
 
@@ -92,7 +92,8 @@ class AgentProcessManager:
         self._callbacks_lock = threading.Lock()
 
         # Lock file to prevent multiple instances (stored in project directory)
-        self.lock_file = self.project_dir / ".agent.lock"
+        from autocoder_paths import get_agent_lock_path
+        self.lock_file = get_agent_lock_path(self.project_dir)
 
     @property
     def status(self) -> Literal["stopped", "running", "paused", "crashed"]:
@@ -296,6 +297,8 @@ class AgentProcessManager:
         parallel_mode: bool = False,
         max_concurrency: int | None = None,
         testing_agent_ratio: int = 1,
+        playwright_headless: bool = True,
+        batch_size: int = 3,
     ) -> tuple[bool, str]:
         """
         Start the agent as a subprocess.
@@ -306,6 +309,7 @@ class AgentProcessManager:
             parallel_mode: DEPRECATED - ignored, always uses unified orchestrator
             max_concurrency: Max concurrent coding agents (1-5, default 1)
             testing_agent_ratio: Number of regression testing agents (0-3, default 1)
+            playwright_headless: If True, run browser in headless mode
 
         Returns:
             Tuple of (success, message)
@@ -346,18 +350,21 @@ class AgentProcessManager:
         # Add testing agent configuration
         cmd.extend(["--testing-ratio", str(testing_agent_ratio)])
 
+        # Add --batch-size flag for multi-feature batching
+        cmd.extend(["--batch-size", str(batch_size)])
+
         try:
             # Start subprocess with piped stdout/stderr
             # Use project_dir as cwd so Claude SDK sandbox allows access to project files
             # stdin=DEVNULL prevents blocking if Claude CLI or child process tries to read stdin
             # CREATE_NO_WINDOW on Windows prevents console window pop-ups
             # PYTHONUNBUFFERED ensures output isn't delayed
-            popen_kwargs = {
+            popen_kwargs: dict[str, Any] = {
                 "stdin": subprocess.DEVNULL,
                 "stdout": subprocess.PIPE,
                 "stderr": subprocess.STDOUT,
                 "cwd": str(self.project_dir),
-                "env": {**os.environ, "PYTHONUNBUFFERED": "1"},
+                "env": {**os.environ, "PYTHONUNBUFFERED": "1", "PLAYWRIGHT_HEADLESS": "true" if playwright_headless else "false"},
             }
             if sys.platform == "win32":
                 popen_kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
@@ -579,8 +586,18 @@ def cleanup_orphaned_locks() -> int:
             if not project_path.exists():
                 continue
 
-            lock_file = project_path / ".agent.lock"
-            if not lock_file.exists():
+            # Check both legacy and new locations for lock files
+            from autocoder_paths import get_autocoder_dir
+            lock_locations = [
+                project_path / ".agent.lock",
+                get_autocoder_dir(project_path) / ".agent.lock",
+            ]
+            lock_file = None
+            for candidate in lock_locations:
+                if candidate.exists():
+                    lock_file = candidate
+                    break
+            if lock_file is None:
                 continue
 
             try:
