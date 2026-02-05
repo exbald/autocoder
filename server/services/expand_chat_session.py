@@ -103,7 +103,7 @@ class ExpandChatSession:
             return
 
         # Verify project has existing spec
-        from autocoder_paths import get_prompts_dir
+        from autoforge_paths import get_prompts_dir
         spec_path = get_prompts_dir(self.project_dir) / "app_spec.txt"
         if not spec_path.exists():
             yield {
@@ -142,7 +142,7 @@ class ExpandChatSession:
                 ],
             },
         }
-        from autocoder_paths import get_expand_settings_path
+        from autoforge_paths import get_expand_settings_path
         settings_file = get_expand_settings_path(self.project_dir, uuid.uuid4().hex)
         settings_file.parent.mkdir(parents=True, exist_ok=True)
         self._settings_file = settings_file

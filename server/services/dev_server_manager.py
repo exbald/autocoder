@@ -17,6 +17,7 @@ import re
 import subprocess
 import sys
 import threading
+import shlex
 from datetime import datetime
 from pathlib import Path
 from typing import Awaitable, Callable, Literal, Set
@@ -115,7 +116,7 @@ class DevServerProcessManager:
         self._callbacks_lock = threading.Lock()
 
         # Lock file to prevent multiple instances (stored in project directory)
-        from autocoder_paths import get_devserver_lock_path
+        from autoforge_paths import get_devserver_lock_path
         self.lock_file = get_devserver_lock_path(self.project_dir)
 
     @property
@@ -291,53 +292,47 @@ class DevServerProcessManager:
         Start the dev server as a subprocess.
 
         Args:
-            command: The shell command to run (e.g., "npm run dev")
+            command: The command to run (e.g., "npm run dev")
 
         Returns:
             Tuple of (success, message)
         """
-        if self.status == "running":
+        # Already running?
+        if self.process and self.status == "running":
             return False, "Dev server is already running"
 
+        # Lock check (prevents double-start)
         if not self._check_lock():
-            return False, "Another dev server instance is already running for this project"
+            return False, "Dev server already running (lock file present)"
 
-        # Validate that project directory exists
-        if not self.project_dir.exists():
-            return False, f"Project directory does not exist: {self.project_dir}"
+        command = (command or "").strip()
+        if not command:
+            return False, "Empty dev server command"
 
-        # Defense-in-depth: validate command against security allowlist
-        commands = extract_commands(command)
-        if not commands:
-            return False, "Could not parse command for security validation"
+        # SECURITY: block shell operators/metacharacters (defense-in-depth)
+        dangerous_ops = ["&&", "||", ";", "|", "`", "$("]
+        if any(op in command for op in dangerous_ops):
+            return False, "Shell operators are not allowed in dev server command"
 
-        allowed_commands, blocked_commands = get_effective_commands(self.project_dir)
-        for cmd in commands:
-            if cmd in blocked_commands:
-                logger.warning("Blocked dev server command '%s' (in blocklist) for %s", cmd, self.project_name)
-                return False, f"Command '{cmd}' is blocked and cannot be used as a dev server command"
-            if not is_command_allowed(cmd, allowed_commands):
-                logger.warning("Rejected dev server command '%s' (not in allowlist) for %s", cmd, self.project_name)
-                return False, f"Command '{cmd}' is not in the allowed commands list"
+        # Parse into argv and execute without shell
+        argv = shlex.split(command, posix=(sys.platform != "win32"))
+        if not argv:
+            return False, "Empty dev server command"
 
-        self._command = command
-        self._detected_url = None  # Reset URL detection
+        base = Path(argv[0]).name.lower()
+
+        # Defense-in-depth: reject direct shells/interpreters commonly used for injection
+        if base in {"sh", "bash", "zsh", "cmd", "powershell", "pwsh"}:
+            return False, f"Shell runner '{base}' is not allowed for dev server commands"
+
+        # Windows: use .cmd shims for Node package managers
+        if sys.platform == "win32" and base in {"npm", "pnpm", "yarn", "npx"} and not argv[0].lower().endswith(".cmd"):
+            argv[0] = argv[0] + ".cmd"
 
         try:
-            # Determine shell based on platform
-            if sys.platform == "win32":
-                # On Windows, use cmd.exe
-                shell_cmd = ["cmd", "/c", command]
-            else:
-                # On Unix-like systems, use sh
-                shell_cmd = ["sh", "-c", command]
-
-            # Start subprocess with piped stdout/stderr
-            # stdin=DEVNULL prevents interactive dev servers from blocking on stdin
-            # On Windows, use CREATE_NO_WINDOW to prevent console window from flashing
             if sys.platform == "win32":
                 self.process = subprocess.Popen(
-                    shell_cmd,
+                    argv,
                     stdin=subprocess.DEVNULL,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
@@ -346,23 +341,35 @@ class DevServerProcessManager:
                 )
             else:
                 self.process = subprocess.Popen(
-                    shell_cmd,
+                    argv,
                     stdin=subprocess.DEVNULL,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     cwd=str(self.project_dir),
                 )
 
-            self._create_lock()
-            self.started_at = datetime.now()
-            self.status = "running"
+            self._command = command
+            self.started_at = datetime.utcnow()
+            self._detected_url = None
 
-            # Start output streaming task
+            # Create lock once we have a PID
+            self._create_lock()
+
+            # Start output streaming
+            self.status = "running"
             self._output_task = asyncio.create_task(self._stream_output())
 
-            return True, f"Dev server started with PID {self.process.pid}"
+            return True, "Dev server started"
+
+        except FileNotFoundError:
+            self.status = "stopped"
+            self.process = None
+            self._remove_lock()
+            return False, f"Command not found: {argv[0]}"
         except Exception as e:
-            logger.exception("Failed to start dev server")
+            self.status = "stopped"
+            self.process = None
+            self._remove_lock()
             return False, f"Failed to start dev server: {e}"
 
     async def stop(self) -> tuple[bool, str]:
@@ -504,10 +511,10 @@ def cleanup_orphaned_devserver_locks() -> int:
                 continue
 
             # Check both legacy and new locations for lock files
-            from autocoder_paths import get_autocoder_dir
+            from autoforge_paths import get_autoforge_dir
             lock_locations = [
                 project_path / ".devserver.lock",
-                get_autocoder_dir(project_path) / ".devserver.lock",
+                get_autoforge_dir(project_path) / ".devserver.lock",
             ]
             lock_file = None
             for candidate in lock_locations:

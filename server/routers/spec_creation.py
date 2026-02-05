@@ -105,7 +105,7 @@ async def get_spec_file_status(project_name: str):
     if not project_dir.exists():
         raise HTTPException(status_code=404, detail="Project directory not found")
 
-    from autocoder_paths import get_prompts_dir
+    from autoforge_paths import get_prompts_dir
     status_file = get_prompts_dir(project_dir) / ".spec_status.json"
 
     if not status_file.exists():

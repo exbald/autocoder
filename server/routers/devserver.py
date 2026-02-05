@@ -8,6 +8,7 @@ Uses project registry for path lookups and project_config for command detection.
 
 import logging
 import sys
+import shlex
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
@@ -71,6 +72,64 @@ def get_project_dir(project_name: str) -> Path:
         )
 
     return project_dir
+
+ALLOWED_RUNNERS = {"npm", "pnpm", "yarn", "uvicorn", "python", "python3"}
+
+def validate_custom_command_strict(cmd: str) -> None:
+    """
+    Strict allowlist validation for dev server commands.
+    Prevents arbitrary command execution (no sh -c, no cmd /c, no python -c, etc.)
+    """
+    if not isinstance(cmd, str) or not cmd.strip():
+        raise ValueError("custom_command cannot be empty")
+
+    argv = shlex.split(cmd, posix=(sys.platform != "win32"))
+    if not argv:
+        raise ValueError("custom_command could not be parsed")
+
+    base = Path(argv[0]).name.lower()
+
+    # Block direct shells / interpreters commonly used for command injection
+    if base in {"sh", "bash", "zsh", "cmd", "powershell", "pwsh"}:
+        raise ValueError(f"custom_command runner not allowed: {base}")
+
+    if base not in ALLOWED_RUNNERS:
+        raise ValueError(f"custom_command runner not allowed: {base}")
+
+    # Block one-liner execution
+    lowered = [a.lower() for a in argv]
+    if base in {"python", "python3"}:
+        if "-c" in lowered:
+            raise ValueError("python -c is not allowed")
+        # Only allow: python -m uvicorn ...
+        if len(argv) < 3 or argv[1:3] != ["-m", "uvicorn"]:
+            raise ValueError("Only 'python -m uvicorn ...' is allowed")
+
+    if base == "uvicorn":
+        if len(argv) < 2 or ":" not in argv[1]:
+            raise ValueError("uvicorn must specify an app like module:app")
+
+        allowed_flags = {"--host", "--port", "--reload", "--log-level", "--workers"}
+        i = 2
+        while i < len(argv):
+            a = argv[i]
+            if a.startswith("-") and a not in allowed_flags:
+                raise ValueError(f"uvicorn flag not allowed: {a}")
+            i += 1
+
+    if base in {"npm", "pnpm", "yarn"}:
+        # Allow only dev/start scripts (no arbitrary exec)
+        if base == "npm":
+            if len(argv) < 3 or argv[1] != "run" or argv[2] not in {"dev", "start"}:
+                raise ValueError("npm custom_command must be 'npm run dev' or 'npm run start'")
+        elif base == "pnpm":
+            ok = (len(argv) >= 2 and argv[1] in {"dev", "start"}) or (len(argv) >= 3 and argv[1] == "run" and argv[2] in {"dev", "start"})
+            if not ok:
+                raise ValueError("pnpm custom_command must be 'pnpm dev/start' or 'pnpm run dev/start'")
+        elif base == "yarn":
+            ok = (len(argv) >= 2 and argv[1] in {"dev", "start"}) or (len(argv) >= 3 and argv[1] == "run" and argv[2] in {"dev", "start"})
+            if not ok:
+                raise ValueError("yarn custom_command must be 'yarn dev/start' or 'yarn run dev/start'")
 
 
 def get_project_devserver_manager(project_name: str):
@@ -180,9 +239,12 @@ async def start_devserver(
     # Determine which command to use
     command: str | None
     if request.command:
-        command = request.command
-    else:
-        command = get_dev_command(project_dir)
+        raise HTTPException(
+            status_code=400,
+            detail="Direct command execution is disabled. Use /config to set a safe custom_command."
+        )
+    
+    command = get_dev_command(project_dir)
 
     if not command:
         raise HTTPException(
@@ -289,6 +351,7 @@ async def update_devserver_config(
 
         # Set the custom command
         try:
+            validate_custom_command_strict(update.custom_command)
             set_dev_command(project_dir, update.custom_command)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))

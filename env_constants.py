@@ -7,7 +7,7 @@ subprocesses.  Imported by both ``client.py`` (agent sessions) and
 ``server/services/chat_constants.py`` (chat sessions) to avoid maintaining
 duplicate lists.
 
-These allow autocoder to use alternative API endpoints (Ollama, GLM,
+These allow autoforge to use alternative API endpoints (Ollama, GLM,
 Vertex AI) without affecting the user's global Claude Code settings.
 """
 

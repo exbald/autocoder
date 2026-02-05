@@ -82,7 +82,7 @@ def get_existing_projects() -> list[tuple[str, Path]]:
 def display_menu(projects: list[tuple[str, Path]]) -> None:
     """Display the main menu."""
     print("\n" + "=" * 50)
-    print("  Autonomous Coding Agent Launcher")
+    print("  AutoForge - Autonomous Coding Agent")
     print("=" * 50)
     print("\n[1] Create new project")
 

@@ -64,7 +64,7 @@ def get_system_prompt(project_name: str, project_dir: Path) -> str:
     """Generate the system prompt for the assistant with project context."""
     # Try to load app_spec.txt for context
     app_spec_content = ""
-    from autocoder_paths import get_prompts_dir
+    from autoforge_paths import get_prompts_dir
     app_spec_path = get_prompts_dir(project_dir) / "app_spec.txt"
     if app_spec_path.exists():
         try:
@@ -224,7 +224,7 @@ class AssistantChatSession:
                 "allow": permissions_list,
             },
         }
-        from autocoder_paths import get_claude_assistant_settings_path
+        from autoforge_paths import get_claude_assistant_settings_path
         settings_file = get_claude_assistant_settings_path(self.project_dir)
         settings_file.parent.mkdir(parents=True, exist_ok=True)
         with open(settings_file, "w") as f:

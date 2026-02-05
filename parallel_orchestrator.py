@@ -40,11 +40,11 @@ from server.utils.process_utils import kill_process_tree
 
 logger = logging.getLogger(__name__)
 
-# Root directory of autocoder (where this script and autonomous_agent_demo.py live)
-AUTOCODER_ROOT = Path(__file__).parent.resolve()
+# Root directory of autoforge (where this script and autonomous_agent_demo.py live)
+AUTOFORGE_ROOT = Path(__file__).parent.resolve()
 
 # Debug log file path
-DEBUG_LOG_FILE = AUTOCODER_ROOT / "orchestrator_debug.log"
+DEBUG_LOG_FILE = AUTOFORGE_ROOT / "orchestrator_debug.log"
 
 
 class DebugLogger:
@@ -823,7 +823,7 @@ class ParallelOrchestrator:
         cmd = [
             sys.executable,
             "-u",  # Force unbuffered stdout/stderr
-            str(AUTOCODER_ROOT / "autonomous_agent_demo.py"),
+            str(AUTOFORGE_ROOT / "autonomous_agent_demo.py"),
             "--project-dir", str(self.project_dir),
             "--max-iterations", "1",
             "--agent-type", "coding",
@@ -845,7 +845,7 @@ class ParallelOrchestrator:
                 "text": True,
                 "encoding": "utf-8",
                 "errors": "replace",
-                "cwd": str(AUTOCODER_ROOT),  # Run from autocoder root for proper imports
+                "cwd": str(self.project_dir),  # Run from project dir so CLI creates .claude/ in project
                 "env": {**os.environ, "PYTHONUNBUFFERED": "1"},
             }
             if sys.platform == "win32":
@@ -889,7 +889,7 @@ class ParallelOrchestrator:
         cmd = [
             sys.executable,
             "-u",
-            str(AUTOCODER_ROOT / "autonomous_agent_demo.py"),
+            str(AUTOFORGE_ROOT / "autonomous_agent_demo.py"),
             "--project-dir", str(self.project_dir),
             "--max-iterations", "1",
             "--agent-type", "coding",
@@ -908,7 +908,7 @@ class ParallelOrchestrator:
                 "text": True,
                 "encoding": "utf-8",
                 "errors": "replace",
-                "cwd": str(AUTOCODER_ROOT),
+                "cwd": str(self.project_dir),  # Run from project dir so CLI creates .claude/ in project
                 "env": {**os.environ, "PYTHONUNBUFFERED": "1"},
             }
             if sys.platform == "win32":
@@ -992,7 +992,7 @@ class ParallelOrchestrator:
             cmd = [
                 sys.executable,
                 "-u",
-                str(AUTOCODER_ROOT / "autonomous_agent_demo.py"),
+                str(AUTOFORGE_ROOT / "autonomous_agent_demo.py"),
                 "--project-dir", str(self.project_dir),
                 "--max-iterations", "1",
                 "--agent-type", "testing",
@@ -1012,7 +1012,7 @@ class ParallelOrchestrator:
                     "text": True,
                     "encoding": "utf-8",
                     "errors": "replace",
-                    "cwd": str(AUTOCODER_ROOT),
+                    "cwd": str(self.project_dir),  # Run from project dir so CLI creates .claude/ in project
                     "env": {**os.environ, "PYTHONUNBUFFERED": "1"},
                 }
                 if sys.platform == "win32":
@@ -1053,7 +1053,7 @@ class ParallelOrchestrator:
 
         cmd = [
             sys.executable, "-u",
-            str(AUTOCODER_ROOT / "autonomous_agent_demo.py"),
+            str(AUTOFORGE_ROOT / "autonomous_agent_demo.py"),
             "--project-dir", str(self.project_dir),
             "--agent-type", "initializer",
             "--max-iterations", "1",
@@ -1073,7 +1073,7 @@ class ParallelOrchestrator:
             "text": True,
             "encoding": "utf-8",
             "errors": "replace",
-            "cwd": str(AUTOCODER_ROOT),
+            "cwd": str(AUTOFORGE_ROOT),
             "env": {**os.environ, "PYTHONUNBUFFERED": "1"},
         }
         if sys.platform == "win32":

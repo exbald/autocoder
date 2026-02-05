@@ -121,7 +121,7 @@ async def expand_project_websocket(websocket: WebSocket, project_name: str):
         return
 
     # Verify project has app_spec.txt
-    from autocoder_paths import get_prompts_dir
+    from autoforge_paths import get_prompts_dir
     spec_path = get_prompts_dir(project_dir) / "app_spec.txt"
     if not spec_path.exists():
         await websocket.close(code=4004, reason="Project has no spec. Create spec first.")

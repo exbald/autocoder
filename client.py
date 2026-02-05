@@ -382,7 +382,7 @@ def create_client(
     project_dir.mkdir(parents=True, exist_ok=True)
 
     # Write settings to a file in the project directory
-    from autocoder_paths import get_claude_settings_path
+    from autoforge_paths import get_claude_settings_path
     settings_file = get_claude_settings_path(project_dir)
     settings_file.parent.mkdir(parents=True, exist_ok=True)
     with open(settings_file, "w") as f:
@@ -450,7 +450,7 @@ def create_client(
 
     # Build environment overrides for API endpoint configuration
     # These override system env vars for the Claude CLI subprocess,
-    # allowing AutoCoder to use alternative APIs (e.g., GLM) without
+    # allowing AutoForge to use alternative APIs (e.g., GLM) without
     # affecting the user's global Claude Code settings
     sdk_env = {}
     for var in API_ENV_VARS:
