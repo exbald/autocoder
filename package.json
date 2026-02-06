@@ -1,6 +1,6 @@
 {
   "name": "autoforge-ai",
-  "version": "0.1.1",
+  "version": "0.1.4",
   "description": "Autonomous coding agent with web UI - build complete apps with AI",
   "license": "AGPL-3.0",
   "bin": {
@@ -34,6 +34,7 @@
     "registry.py",
     "rate_limit_utils.py",
     "security.py",
+    "temp_cleanup.py",
     "requirements-prod.txt",
     "pyproject.toml",
     ".env.example",
