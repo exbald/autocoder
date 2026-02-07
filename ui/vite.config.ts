@@ -36,6 +36,8 @@ export default defineConfig({
             '@radix-ui/react-slot',
             '@radix-ui/react-switch',
           ],
+          // Markdown rendering
+          'vendor-markdown': ['react-markdown', 'remark-gfm'],
           // Icons and utilities
           'vendor-utils': [
             'lucide-react',

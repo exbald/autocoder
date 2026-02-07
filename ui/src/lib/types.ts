@@ -465,6 +465,11 @@ export interface AssistantChatConversationCreatedMessage {
   conversation_id: number
 }
 
+export interface AssistantChatQuestionMessage {
+  type: 'question'
+  questions: SpecQuestion[]
+}
+
 export interface AssistantChatPongMessage {
   type: 'pong'
 }
@@ -472,6 +477,7 @@ export interface AssistantChatPongMessage {
 export type AssistantChatServerMessage =
   | AssistantChatTextMessage
   | AssistantChatToolCallMessage
+  | AssistantChatQuestionMessage
   | AssistantChatResponseDoneMessage
   | AssistantChatErrorMessage
   | AssistantChatConversationCreatedMessage

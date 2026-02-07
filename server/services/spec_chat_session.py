@@ -140,11 +140,11 @@ class SpecChatSession:
         system_cli = shutil.which("claude")
 
         # Build environment overrides for API configuration
-        from registry import get_effective_sdk_env
+        from registry import DEFAULT_MODEL, get_effective_sdk_env
         sdk_env = get_effective_sdk_env()
 
         # Determine model from SDK env (provider-aware) or fallback to env/default
-        model = sdk_env.get("ANTHROPIC_DEFAULT_OPUS_MODEL") or os.getenv("ANTHROPIC_DEFAULT_OPUS_MODEL", "claude-opus-4-5-20251101")
+        model = sdk_env.get("ANTHROPIC_DEFAULT_OPUS_MODEL") or os.getenv("ANTHROPIC_DEFAULT_OPUS_MODEL", DEFAULT_MODEL)
 
         try:
             self.client = ClaudeSDKClient(

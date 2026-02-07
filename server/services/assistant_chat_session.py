@@ -47,8 +47,13 @@ FEATURE_MANAGEMENT_TOOLS = [
     "mcp__features__feature_skip",
 ]
 
+# Interactive tools
+INTERACTIVE_TOOLS = [
+    "mcp__features__ask_user",
+]
+
 # Combined list for assistant
-ASSISTANT_FEATURE_TOOLS = READONLY_FEATURE_MCP_TOOLS + FEATURE_MANAGEMENT_TOOLS
+ASSISTANT_FEATURE_TOOLS = READONLY_FEATURE_MCP_TOOLS + FEATURE_MANAGEMENT_TOOLS + INTERACTIVE_TOOLS
 
 # Read-only built-in tools (no Write, Edit, Bash)
 READONLY_BUILTIN_TOOLS = [
@@ -123,6 +128,9 @@ If the user asks you to modify code, explain that you're a project assistant and
 - **feature_create_bulk**: Create multiple features at once
 - **feature_skip**: Move a feature to the end of the queue
 
+**Interactive:**
+- **ask_user**: Present structured multiple-choice questions to the user. Use this when you need to clarify requirements, offer design choices, or guide a decision. The user sees clickable option buttons and their selection is returned as your next message.
+
 ## Creating Features
 
 When a user asks to add a feature, use the `feature_create` or `feature_create_bulk` MCP tools directly:
@@ -157,7 +165,7 @@ class AssistantChatSession:
     """
     Manages a read-only assistant conversation for a project.
 
-    Uses Claude Opus 4.5 with only read-only tools enabled.
+    Uses Claude Opus with only read-only tools enabled.
     Persists conversation history to SQLite.
     """
 
@@ -258,11 +266,11 @@ class AssistantChatSession:
         system_cli = shutil.which("claude")
 
         # Build environment overrides for API configuration
-        from registry import get_effective_sdk_env
+        from registry import DEFAULT_MODEL, get_effective_sdk_env
         sdk_env = get_effective_sdk_env()
 
         # Determine model from SDK env (provider-aware) or fallback to env/default
-        model = sdk_env.get("ANTHROPIC_DEFAULT_OPUS_MODEL") or os.getenv("ANTHROPIC_DEFAULT_OPUS_MODEL", "claude-opus-4-5-20251101")
+        model = sdk_env.get("ANTHROPIC_DEFAULT_OPUS_MODEL") or os.getenv("ANTHROPIC_DEFAULT_OPUS_MODEL", DEFAULT_MODEL)
 
         try:
             logger.info("Creating ClaudeSDKClient...")
@@ -402,6 +410,17 @@ class AssistantChatSession:
                     elif block_type == "ToolUseBlock" and hasattr(block, "name"):
                         tool_name = block.name
                         tool_input = getattr(block, "input", {})
+
+                        # Intercept ask_user tool calls -> yield as question message
+                        if tool_name == "mcp__features__ask_user":
+                            questions = tool_input.get("questions", [])
+                            if questions:
+                                yield {
+                                    "type": "question",
+                                    "questions": questions,
+                                }
+                                continue
+
                         yield {
                             "type": "tool_call",
                             "tool": tool_name,

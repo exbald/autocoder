@@ -326,37 +326,13 @@ When test progress increases, the agent sends:
 }
 ```
 
-### Using GLM Models (Alternative to Claude)
+### Alternative API Providers (GLM, Ollama, Kimi, Custom)
 
-Add these variables to your `.env` file to use Zhipu AI's GLM models:
+Alternative providers are configured via the **Settings UI** (gear icon > API Provider). Select your provider, set the base URL, auth token, and model directly in the UI — no `.env` changes needed.
 
-```bash
-ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
-ANTHROPIC_AUTH_TOKEN=your-zhipu-api-key
-API_TIMEOUT_MS=3000000
-ANTHROPIC_DEFAULT_SONNET_MODEL=glm-4.7
-ANTHROPIC_DEFAULT_OPUS_MODEL=glm-4.7
-ANTHROPIC_DEFAULT_HAIKU_MODEL=glm-4.5-air
-```
+Available providers: **Claude** (default), **GLM** (Zhipu AI), **Ollama** (local models), **Kimi** (Moonshot), **Custom**
 
-This routes AutoForge's API requests through Zhipu's Claude-compatible API, allowing you to use GLM-4.7 and other models. **This only affects AutoForge** - your global Claude Code settings remain unchanged.
-
-Get an API key at: https://z.ai/subscribe
-
-### Using Ollama Local Models
-
-Add these variables to your `.env` file to run agents with local models via Ollama v0.14.0+:
-
-```bash
-ANTHROPIC_BASE_URL=http://localhost:11434
-ANTHROPIC_AUTH_TOKEN=ollama
-API_TIMEOUT_MS=3000000
-ANTHROPIC_DEFAULT_SONNET_MODEL=qwen3-coder
-ANTHROPIC_DEFAULT_OPUS_MODEL=qwen3-coder
-ANTHROPIC_DEFAULT_HAIKU_MODEL=qwen3-coder
-```
-
-See the [CLAUDE.md](CLAUDE.md) for recommended models and known limitations.
+For Ollama, install [Ollama v0.14.0+](https://ollama.com), run `ollama serve`, and pull a coding model (e.g., `ollama pull qwen3-coder`). Then select "Ollama" in the Settings UI.
 
 ### Using Vertex AI
 
@@ -366,7 +342,7 @@ Add these variables to your `.env` file to run agents via Google Cloud Vertex AI
 CLAUDE_CODE_USE_VERTEX=1
 CLOUD_ML_REGION=us-east5
 ANTHROPIC_VERTEX_PROJECT_ID=your-gcp-project-id
-ANTHROPIC_DEFAULT_OPUS_MODEL=claude-opus-4-5@20251101
+ANTHROPIC_DEFAULT_OPUS_MODEL=claude-opus-4-6
 ANTHROPIC_DEFAULT_SONNET_MODEL=claude-sonnet-4-5@20250929
 ANTHROPIC_DEFAULT_HAIKU_MODEL=claude-3-5-haiku@20241022
 ```

@@ -408,44 +408,23 @@ Run coding agents via Google Cloud Vertex AI:
    CLAUDE_CODE_USE_VERTEX=1
    CLOUD_ML_REGION=us-east5
    ANTHROPIC_VERTEX_PROJECT_ID=your-gcp-project-id
-   ANTHROPIC_DEFAULT_OPUS_MODEL=claude-opus-4-5@20251101
+   ANTHROPIC_DEFAULT_OPUS_MODEL=claude-opus-4-6
    ANTHROPIC_DEFAULT_SONNET_MODEL=claude-sonnet-4-5@20250929
    ANTHROPIC_DEFAULT_HAIKU_MODEL=claude-3-5-haiku@20241022
    ```
 
 **Note:** Use `@` instead of `-` in model names for Vertex AI.
 
-### Ollama Local Models (Optional)
+### Alternative API Providers (GLM, Ollama, Kimi, Custom)
 
-Run coding agents using local models via Ollama v0.14.0+:
+Alternative providers are configured via the **Settings UI** (gear icon > API Provider section). Select a provider, set the base URL, auth token, and model — no `.env` changes needed.
 
-1. Install Ollama: https://ollama.com
-2. Start Ollama: `ollama serve`
-3. Pull a coding model: `ollama pull qwen3-coder`
-4. Configure `.env`:
-   ```
-   ANTHROPIC_BASE_URL=http://localhost:11434
-   ANTHROPIC_AUTH_TOKEN=ollama
-   API_TIMEOUT_MS=3000000
-   ANTHROPIC_DEFAULT_SONNET_MODEL=qwen3-coder
-   ANTHROPIC_DEFAULT_OPUS_MODEL=qwen3-coder
-   ANTHROPIC_DEFAULT_HAIKU_MODEL=qwen3-coder
-   ```
-5. Run AutoForge normally - it will use your local Ollama models
+**Available providers:** Claude (default), GLM (Zhipu AI), Ollama (local models), Kimi (Moonshot), Custom
 
-**Recommended coding models:**
-- `qwen3-coder` - Good balance of speed and capability
-- `deepseek-coder-v2` - Strong coding performance
-- `codellama` - Meta's code-focused model
-
-**Model tier mapping:**
-- Use the same model for all tiers, or map different models per capability level
-- Larger models (70B+) work best for Opus tier
-- Smaller models (7B-20B) work well for Haiku tier
-
-**Known limitations:**
-- Smaller context windows than Claude (model-dependent)
-- Extended context beta disabled (not supported by Ollama)
+**Ollama notes:**
+- Requires Ollama v0.14.0+ with Anthropic API compatibility
+- Install: https://ollama.com → `ollama serve` → `ollama pull qwen3-coder`
+- Recommended models: `qwen3-coder`, `deepseek-coder-v2`, `codellama`
 - Performance depends on local hardware (GPU recommended)
 
 ## Claude Code Integration

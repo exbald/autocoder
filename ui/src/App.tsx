@@ -319,7 +319,7 @@ function App() {
                   {settings?.ollama_mode && (
                     <div
                       className="flex items-center gap-1.5 px-2 py-1 bg-card rounded border-2 border-border shadow-sm"
-                      title="Using Ollama local models (configured via .env)"
+                      title="Using Ollama local models"
                     >
                       <img src="/ollama.png" alt="Ollama" className="w-5 h-5" />
                       <span className="text-xs font-bold text-foreground">Ollama</span>
@@ -330,7 +330,7 @@ function App() {
                   {settings?.glm_mode && (
                     <Badge
                       className="bg-purple-500 text-white hover:bg-purple-600"
-                      title="Using GLM API (configured via .env)"
+                      title="Using GLM API"
                     >
                       GLM
                     </Badge>

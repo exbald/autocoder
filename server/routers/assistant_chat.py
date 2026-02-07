@@ -207,12 +207,14 @@ async def assistant_chat_websocket(websocket: WebSocket, project_name: str):
     Client -> Server:
     - {"type": "start", "conversation_id": int | null} - Start/resume session
     - {"type": "message", "content": "..."} - Send user message
+    - {"type": "answer", "answers": {...}} - Answer to structured questions
     - {"type": "ping"} - Keep-alive ping
 
     Server -> Client:
     - {"type": "conversation_created", "conversation_id": int} - New conversation created
     - {"type": "text", "content": "..."} - Text chunk from Claude
     - {"type": "tool_call", "tool": "...", "input": {...}} - Tool being called
+    - {"type": "question", "questions": [...]} - Structured questions for user
     - {"type": "response_done"} - Response complete
     - {"type": "error", "content": "..."} - Error message
     - {"type": "pong"} - Keep-alive pong
@@ -301,6 +303,34 @@ async def assistant_chat_websocket(websocket: WebSocket, project_name: str):
 
                     # Stream Claude's response
                     async for chunk in session.send_message(user_content):
+                        await websocket.send_json(chunk)
+
+                elif msg_type == "answer":
+                    # User answered a structured question
+                    if not session:
+                        session = get_session(project_name)
+                        if not session:
+                            await websocket.send_json({
+                                "type": "error",
+                                "content": "No active session. Send 'start' first."
+                            })
+                            continue
+
+                    # Format the answers as a natural response
+                    answers = message.get("answers", {})
+                    if isinstance(answers, dict):
+                        response_parts = []
+                        for question_idx, answer_value in answers.items():
+                            if isinstance(answer_value, list):
+                                response_parts.append(", ".join(answer_value))
+                            else:
+                                response_parts.append(str(answer_value))
+                        user_response = "; ".join(response_parts) if response_parts else "OK"
+                    else:
+                        user_response = str(answers)
+
+                    # Stream Claude's response
+                    async for chunk in session.send_message(user_response):
                         await websocket.send_json(chunk)
 
                 else:

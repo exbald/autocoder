@@ -7,7 +7,6 @@ Settings are stored in the registry database and shared across all projects.
 """
 
 import mimetypes
-import os
 import sys
 
 from fastapi import APIRouter
@@ -37,19 +36,6 @@ router = APIRouter(prefix="/api/settings", tags=["settings"])
 def _parse_yolo_mode(value: str | None) -> bool:
     """Parse YOLO mode string to boolean."""
     return (value or "false").lower() == "true"
-
-
-def _is_glm_mode() -> bool:
-    """Check if GLM API is configured via environment variables."""
-    base_url = os.getenv("ANTHROPIC_BASE_URL", "")
-    # GLM mode is when ANTHROPIC_BASE_URL is set but NOT pointing to Ollama
-    return bool(base_url) and not _is_ollama_mode()
-
-
-def _is_ollama_mode() -> bool:
-    """Check if Ollama API is configured via environment variables."""
-    base_url = os.getenv("ANTHROPIC_BASE_URL", "")
-    return "localhost:11434" in base_url or "127.0.0.1:11434" in base_url
 
 
 @router.get("/providers", response_model=ProvidersResponse)
@@ -116,9 +102,8 @@ async def get_settings():
 
     api_provider = all_settings.get("api_provider", "claude")
 
-    # Compute glm_mode / ollama_mode from api_provider for backward compat
-    glm_mode = api_provider == "glm" or _is_glm_mode()
-    ollama_mode = api_provider == "ollama" or _is_ollama_mode()
+    glm_mode = api_provider == "glm"
+    ollama_mode = api_provider == "ollama"
 
     return SettingsResponse(
         yolo_mode=_parse_yolo_mode(all_settings.get("yolo_mode")),
@@ -181,8 +166,8 @@ async def update_settings(update: SettingsUpdate):
     # Return updated settings
     all_settings = get_all_settings()
     api_provider = all_settings.get("api_provider", "claude")
-    glm_mode = api_provider == "glm" or _is_glm_mode()
-    ollama_mode = api_provider == "ollama" or _is_ollama_mode()
+    glm_mode = api_provider == "glm"
+    ollama_mode = api_provider == "ollama"
 
     return SettingsResponse(
         yolo_mode=_parse_yolo_mode(all_settings.get("yolo_mode")),

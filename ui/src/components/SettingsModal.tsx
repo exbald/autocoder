@@ -325,7 +325,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                           : 'bg-background text-foreground hover:bg-muted'
                       } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      {model.name}
+                      <span className="block">{model.name}</span>
+                      <span className="block text-xs opacity-60">{model.id}</span>
                     </button>
                   ))}
                 </div>
