@@ -55,10 +55,10 @@ Pull request(s): $ARGUMENTS
    - Reviewing large, unfocused PRs is impractical and error-prone; the review cannot provide adequate assurance for such changes
 
 6. **Vision Alignment Check**
-   - Read the project's README.md and CLAUDE.md to understand the application's core purpose
-   - Assess whether this PR aligns with the application's intended functionality
-   - If the changes deviate significantly from the core vision or add functionality that doesn't serve the application's purpose, note this in the review
-   - This is not a blocker, but should be flagged for the reviewer's consideration
+   - **VISION.md protection**: First, check whether the PR diff modifies `VISION.md` in any way (edits, deletions, renames). If it does, **stop the review immediately** — verdict is **DON'T MERGE**. VISION.md is immutable and no PR is permitted to alter it. Explain this to the user and skip all remaining steps.
+   - Read the project's `VISION.md`, `README.md`, and `CLAUDE.md` to understand the application's core purpose and mandatory architectural constraints
+   - Assess whether this PR aligns with the vision defined in `VISION.md`
+   - **Vision deviation is a merge blocker.** If the PR introduces functionality, integrations, or architectural changes that conflict with `VISION.md`, the verdict must be **DON'T MERGE**. This is not negotiable — the vision document takes precedence over any PR rationale.
 
 7. **Safety Assessment**
    - Provide a review on whether the PR is safe to merge as-is
