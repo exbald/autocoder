@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Switch } from '@/components/ui/switch'
+import { Slider } from '@/components/ui/slider'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -60,6 +61,12 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const handleBatchSizeChange = (size: number) => {
     if (!updateSettings.isPending) {
       updateSettings.mutate({ batch_size: size })
+    }
+  }
+
+  const handleTestingBatchSizeChange = (size: number) => {
+    if (!updateSettings.isPending) {
+      updateSettings.mutate({ testing_batch_size: size })
     }
   }
 
@@ -432,28 +439,34 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               </div>
             </div>
 
-            {/* Features per Agent */}
+            {/* Features per Coding Agent */}
             <div className="space-y-2">
-              <Label className="font-medium">Features per Agent</Label>
+              <Label className="font-medium">Features per Coding Agent</Label>
               <p className="text-sm text-muted-foreground">
-                Number of features assigned to each coding agent
+                Number of features assigned to each coding agent session
               </p>
-              <div className="flex rounded-lg border overflow-hidden">
-                {[1, 2, 3].map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => handleBatchSizeChange(size)}
-                    disabled={isSaving}
-                    className={`flex-1 py-2 px-3 text-sm font-medium transition-colors ${
-                      (settings.batch_size ?? 1) === size
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-background text-foreground hover:bg-muted'
-                    } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
+              <Slider
+                min={1}
+                max={15}
+                value={settings.batch_size ?? 3}
+                onChange={handleBatchSizeChange}
+                disabled={isSaving}
+              />
+            </div>
+
+            {/* Features per Testing Agent */}
+            <div className="space-y-2">
+              <Label className="font-medium">Features per Testing Agent</Label>
+              <p className="text-sm text-muted-foreground">
+                Number of features assigned to each testing agent session
+              </p>
+              <Slider
+                min={1}
+                max={15}
+                value={settings.testing_batch_size ?? 3}
+                onChange={handleTestingBatchSizeChange}
+                disabled={isSaving}
+              />
             </div>
 
             {/* Update Error */}

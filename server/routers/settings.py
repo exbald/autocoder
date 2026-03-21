@@ -113,6 +113,7 @@ async def get_settings():
         testing_agent_ratio=_parse_int(all_settings.get("testing_agent_ratio"), 1),
         playwright_headless=_parse_bool(all_settings.get("playwright_headless"), default=True),
         batch_size=_parse_int(all_settings.get("batch_size"), 3),
+        testing_batch_size=_parse_int(all_settings.get("testing_batch_size"), 3),
         api_provider=api_provider,
         api_base_url=all_settings.get("api_base_url"),
         api_has_auth_token=bool(all_settings.get("api_auth_token")),
@@ -137,6 +138,9 @@ async def update_settings(update: SettingsUpdate):
 
     if update.batch_size is not None:
         set_setting("batch_size", str(update.batch_size))
+
+    if update.testing_batch_size is not None:
+        set_setting("testing_batch_size", str(update.testing_batch_size))
 
     # API provider settings
     if update.api_provider is not None:
@@ -177,6 +181,7 @@ async def update_settings(update: SettingsUpdate):
         testing_agent_ratio=_parse_int(all_settings.get("testing_agent_ratio"), 1),
         playwright_headless=_parse_bool(all_settings.get("playwright_headless"), default=True),
         batch_size=_parse_int(all_settings.get("batch_size"), 3),
+        testing_batch_size=_parse_int(all_settings.get("testing_batch_size"), 3),
         api_provider=api_provider,
         api_base_url=all_settings.get("api_base_url"),
         api_has_auth_token=bool(all_settings.get("api_auth_token")),

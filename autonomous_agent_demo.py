@@ -176,14 +176,14 @@ Authentication:
         "--testing-batch-size",
         type=int,
         default=3,
-        help="Number of features per testing batch (1-5, default: 3)",
+        help="Number of features per testing batch (1-15, default: 3)",
     )
 
     parser.add_argument(
         "--batch-size",
         type=int,
         default=3,
-        help="Max features per coding agent batch (1-3, default: 3)",
+        help="Max features per coding agent batch (1-15, default: 3)",
     )
 
     return parser.parse_args()

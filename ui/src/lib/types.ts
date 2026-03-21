@@ -579,7 +579,8 @@ export interface Settings {
   ollama_mode: boolean
   testing_agent_ratio: number  // Regression testing agents (0-3)
   playwright_headless: boolean
-  batch_size: number  // Features per coding agent batch (1-3)
+  batch_size: number  // Features per coding agent batch (1-15)
+  testing_batch_size: number  // Features per testing agent batch (1-15)
   api_provider: string
   api_base_url: string | null
   api_has_auth_token: boolean
@@ -592,6 +593,7 @@ export interface SettingsUpdate {
   testing_agent_ratio?: number
   playwright_headless?: boolean
   batch_size?: number
+  testing_batch_size?: number
   api_provider?: string
   api_base_url?: string
   api_auth_token?: string

@@ -374,6 +374,7 @@ class AgentProcessManager:
         testing_agent_ratio: int = 1,
         playwright_headless: bool = True,
         batch_size: int = 3,
+        testing_batch_size: int = 3,
     ) -> tuple[bool, str]:
         """
         Start the agent as a subprocess.
@@ -439,6 +440,9 @@ class AgentProcessManager:
 
         # Add --batch-size flag for multi-feature batching
         cmd.extend(["--batch-size", str(batch_size)])
+
+        # Add --testing-batch-size flag for testing agent batching
+        cmd.extend(["--testing-batch-size", str(testing_batch_size)])
 
         # Apply headless setting to .playwright/cli.config.json so playwright-cli
         # picks it up (the only mechanism it supports for headless control)

@@ -65,7 +65,7 @@ python autonomous_agent_demo.py --project-dir my-app --yolo
 # Parallel mode: run multiple agents concurrently (1-5 agents)
 python autonomous_agent_demo.py --project-dir my-app --parallel --max-concurrency 3
 
-# Batch mode: implement multiple features per agent session (1-3)
+# Batch mode: implement multiple features per agent session (1-15)
 python autonomous_agent_demo.py --project-dir my-app --batch-size 3
 
 # Batch specific features by ID
@@ -496,9 +496,9 @@ The orchestrator enforces strict bounds on concurrent processes:
 
 ### Multi-Feature Batching
 
-Agents can implement multiple features per session using `--batch-size` (1-3, default: 3):
+Agents can implement multiple features per session using `--batch-size` (1-15, default: 3):
 - `--batch-size N` - Max features per coding agent batch
-- `--testing-batch-size N` - Features per testing batch (1-5, default: 3)
+- `--testing-batch-size N` - Features per testing batch (1-15, default: 3)
 - `--batch-features 1,2,3` - Specific feature IDs for batch implementation
 - `--testing-batch-features 1,2,3` - Specific feature IDs for batch regression testing
 - `prompts.py` provides `get_batch_feature_prompt()` for multi-feature prompt generation

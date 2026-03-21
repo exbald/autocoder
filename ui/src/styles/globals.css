@@ -1472,3 +1472,53 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted-foreground);
 }
+
+/* ============================================================================
+   Slider (range input) styling
+   ============================================================================ */
+
+.slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid var(--primary-foreground);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 150ms, box-shadow 150ms;
+}
+
+.slider-input::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: var(--shadow);
+}
+
+.slider-input::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid var(--primary-foreground);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 150ms, box-shadow 150ms;
+}
+
+.slider-input::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: var(--shadow);
+}
+
+.slider-input::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--input);
+}
+
+.slider-input::-moz-range-track {
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--input);
+}

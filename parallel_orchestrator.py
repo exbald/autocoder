@@ -131,7 +131,7 @@ def _dump_database_state(feature_dicts: list[dict], label: str = ""):
 MAX_PARALLEL_AGENTS = 5
 MAX_TOTAL_AGENTS = 10
 DEFAULT_CONCURRENCY = 3
-DEFAULT_TESTING_BATCH_SIZE = 3  # Number of features per testing batch (1-5)
+DEFAULT_TESTING_BATCH_SIZE = 3  # Number of features per testing batch (1-15)
 POLL_INTERVAL = 5  # seconds between checking for ready features
 MAX_FEATURE_RETRIES = 3  # Maximum times to retry a failed feature
 INITIALIZER_TIMEOUT = 1800  # 30 minutes timeout for initializer
@@ -168,7 +168,7 @@ class ParallelOrchestrator:
             yolo_mode: Whether to run in YOLO mode (skip testing agents entirely)
             testing_agent_ratio: Number of regression testing agents to maintain (0-3).
                 0 = disabled, 1-3 = maintain that many testing agents running independently.
-            testing_batch_size: Number of features to include per testing session (1-5).
+            testing_batch_size: Number of features to include per testing session (1-15).
                 Each testing agent receives this many features to regression test.
             on_output: Callback for agent output (feature_id, line)
             on_status: Callback for agent status changes (feature_id, status)
@@ -178,8 +178,8 @@ class ParallelOrchestrator:
         self.model = model
         self.yolo_mode = yolo_mode
         self.testing_agent_ratio = min(max(testing_agent_ratio, 0), 3)  # Clamp 0-3
-        self.testing_batch_size = min(max(testing_batch_size, 1), 5)  # Clamp 1-5
-        self.batch_size = min(max(batch_size, 1), 3)  # Clamp 1-3
+        self.testing_batch_size = min(max(testing_batch_size, 1), 15)  # Clamp 1-15
+        self.batch_size = min(max(batch_size, 1), 15)  # Clamp 1-15
         self.on_output = on_output
         self.on_status = on_status
 
