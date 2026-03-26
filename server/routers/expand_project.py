@@ -13,7 +13,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, ValidationError
 
-from ..schemas import ImageAttachment
+from ..schemas import FileAttachment
 from ..services.expand_chat_session import (
     ExpandChatSession,
     create_expand_session,
@@ -181,12 +181,12 @@ async def expand_project_websocket(websocket: WebSocket, project_name: str):
                     user_content = message.get("content", "").strip()
 
                     # Parse attachments if present
-                    attachments: list[ImageAttachment] = []
+                    attachments: list[FileAttachment] = []
                     raw_attachments = message.get("attachments", [])
                     if raw_attachments:
                         try:
                             for raw_att in raw_attachments:
-                                attachments.append(ImageAttachment(**raw_att))
+                                attachments.append(FileAttachment(**raw_att))
                         except (ValidationError, Exception) as e:
                             logger.warning(f"Invalid attachment data: {e}")
                             await websocket.send_json({

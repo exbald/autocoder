@@ -35,6 +35,13 @@ if _root_str not in sys.path:
 from env_constants import API_ENV_VARS  # noqa: E402, F401
 from rate_limit_utils import is_rate_limit_error, parse_retry_after  # noqa: E402, F401
 
+from ..schemas import FileAttachment
+from ..utils.document_extraction import (
+    extract_text_from_document,
+    is_document,
+    is_image,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -86,6 +93,35 @@ async def safe_receive_response(client: Any, log: logging.Logger) -> AsyncGenera
                 log.warning(f"Ignoring unrecognized message from Claude CLI: {exc}")
                 continue
             raise
+
+
+def build_attachment_content_blocks(attachments: list[FileAttachment]) -> list[dict]:
+    """Convert FileAttachment objects to Claude API content blocks.
+
+    Images become image content blocks (passed directly to Claude's vision).
+    Documents are extracted to text and become text content blocks.
+
+    Raises:
+        DocumentExtractionError: If a document cannot be read.
+    """
+    blocks: list[dict] = []
+    for att in attachments:
+        if is_image(att.mimeType):
+            blocks.append({
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": att.mimeType,
+                    "data": att.base64Data,
+                }
+            })
+        elif is_document(att.mimeType):
+            text = extract_text_from_document(att.base64Data, att.mimeType, att.filename)
+            blocks.append({
+                "type": "text",
+                "text": f"[Content of uploaded file: {att.filename}]\n\n{text}",
+            })
+    return blocks
 
 
 async def make_multimodal_message(content_blocks: list[dict]) -> AsyncGenerator[dict, None]:

@@ -21,9 +21,11 @@ from typing import Any, AsyncGenerator, Optional
 from claude_agent_sdk import ClaudeAgentOptions, ClaudeSDKClient
 from dotenv import load_dotenv
 
-from ..schemas import ImageAttachment
+from ..schemas import FileAttachment
+from ..utils.document_extraction import DocumentExtractionError
 from .chat_constants import (
     ROOT_DIR,
+    build_attachment_content_blocks,
     check_rate_limit_error,
     make_multimodal_message,
     safe_receive_response,
@@ -226,7 +228,7 @@ class ExpandChatSession:
     async def send_message(
         self,
         user_message: str,
-        attachments: list[ImageAttachment] | None = None
+        attachments: list[FileAttachment] | None = None
     ) -> AsyncGenerator[dict, None]:
         """
         Send user message and stream Claude's response.
@@ -273,7 +275,7 @@ class ExpandChatSession:
     async def _query_claude(
         self,
         message: str,
-        attachments: list[ImageAttachment] | None = None
+        attachments: list[FileAttachment] | None = None
     ) -> AsyncGenerator[dict, None]:
         """
         Internal method to query Claude and stream responses.
@@ -289,17 +291,16 @@ class ExpandChatSession:
             content_blocks: list[dict[str, Any]] = []
             if message:
                 content_blocks.append({"type": "text", "text": message})
-            for att in attachments:
-                content_blocks.append({
-                    "type": "image",
-                    "source": {
-                        "type": "base64",
-                        "media_type": att.mimeType,
-                        "data": att.base64Data,
-                    }
-                })
+
+            # Add attachment blocks (images as image blocks, documents as extracted text)
+            try:
+                content_blocks.extend(build_attachment_content_blocks(attachments))
+            except DocumentExtractionError as e:
+                yield {"type": "error", "content": str(e)}
+                return
+
             await self.client.query(make_multimodal_message(content_blocks))
-            logger.info(f"Sent multimodal message with {len(attachments)} image(s)")
+            logger.info(f"Sent multimodal message with {len(attachments)} attachment(s)")
         else:
             await self.client.query(message)
 

@@ -10,6 +10,10 @@ aiofiles>=24.0.0
 apscheduler>=3.10.0,<4.0.0
 pywinpty>=2.0.0; sys_platform == "win32"
 pyyaml>=6.0.0
+python-docx>=1.1.0
+openpyxl>=3.1.0
+PyPDF2>=3.0.0
+python-pptx>=1.0.0
 
 # Dev dependencies
 ruff>=0.8.0

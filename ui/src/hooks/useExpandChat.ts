@@ -3,7 +3,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react'
-import type { ChatMessage, ImageAttachment, ExpandChatServerMessage } from '../lib/types'
+import type { ChatMessage, FileAttachment, ExpandChatServerMessage } from '../lib/types'
 
 type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
 
@@ -27,7 +27,7 @@ interface UseExpandChatReturn {
   featuresCreated: number
   recentFeatures: CreatedFeature[]
   start: () => void
-  sendMessage: (content: string, attachments?: ImageAttachment[]) => void
+  sendMessage: (content: string, attachments?: FileAttachment[]) => void
   disconnect: () => void
 }
 
@@ -278,7 +278,7 @@ export function useExpandChat({
     setTimeout(checkAndSend, 100)
   }, [connect, onError])
 
-  const sendMessage = useCallback((content: string, attachments?: ImageAttachment[]) => {
+  const sendMessage = useCallback((content: string, attachments?: FileAttachment[]) => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       onError?.('Not connected')
       return

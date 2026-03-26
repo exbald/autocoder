@@ -417,14 +417,59 @@ export type SpecChatServerMessage =
   | SpecChatPongMessage
   | SpecChatResponseDoneMessage
 
-// Image attachment for chat messages
-export interface ImageAttachment {
+// File attachment for chat messages (images and documents)
+export interface FileAttachment {
   id: string
   filename: string
-  mimeType: 'image/jpeg' | 'image/png'
+  mimeType:
+    | 'image/jpeg'
+    | 'image/png'
+    | 'text/plain'
+    | 'text/markdown'
+    | 'text/csv'
+    | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    | 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    | 'application/pdf'
+    | 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
   base64Data: string    // Raw base64 (without data: prefix)
-  previewUrl: string    // data: URL for display
+  previewUrl: string    // data: URL for images, empty string for documents
   size: number          // File size in bytes
+}
+
+/** @deprecated Use FileAttachment instead */
+export type ImageAttachment = FileAttachment
+
+export const IMAGE_MIME_TYPES = ['image/jpeg', 'image/png'] as const
+export const DOCUMENT_MIME_TYPES = [
+  'text/plain',
+  'text/markdown',
+  'text/csv',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+] as const
+export const ALL_ALLOWED_MIME_TYPES: string[] = [...IMAGE_MIME_TYPES, ...DOCUMENT_MIME_TYPES]
+
+export function isImageAttachment(att: FileAttachment): boolean {
+  return (IMAGE_MIME_TYPES as readonly string[]).includes(att.mimeType)
+}
+
+export function resolveMimeType(filename: string): string {
+  const ext = filename.split('.').pop()?.toLowerCase()
+  const map: Record<string, string> = {
+    md: 'text/markdown',
+    txt: 'text/plain',
+    csv: 'text/csv',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    pdf: 'application/pdf',
+    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+  }
+  return map[ext || ''] || 'application/octet-stream'
 }
 
 // UI chat message for display
@@ -432,7 +477,7 @@ export interface ChatMessage {
   id: string
   role: 'user' | 'assistant' | 'system'
   content: string
-  attachments?: ImageAttachment[]
+  attachments?: FileAttachment[]
   timestamp: Date
   questions?: SpecQuestion[]
   isStreaming?: boolean

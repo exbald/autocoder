@@ -6,20 +6,22 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Send, X, CheckCircle2, AlertCircle, Wifi, WifiOff, RotateCcw, Paperclip, Plus } from 'lucide-react'
+import { Send, X, CheckCircle2, AlertCircle, Wifi, WifiOff, RotateCcw, Paperclip, Plus, FileText } from 'lucide-react'
 import { useExpandChat } from '../hooks/useExpandChat'
 import { ChatMessage } from './ChatMessage'
 import { TypingIndicator } from './TypingIndicator'
-import type { ImageAttachment } from '../lib/types'
+import type { FileAttachment } from '../lib/types'
+import { ALL_ALLOWED_MIME_TYPES, IMAGE_MIME_TYPES, isImageAttachment, resolveMimeType } from '../lib/types'
 import { isSubmitEnter } from '../lib/keyboard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
-// Image upload validation constants
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
-const ALLOWED_TYPES = ['image/jpeg', 'image/png']
+// File upload validation constants
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5 MB for images
+const MAX_DOCUMENT_SIZE = 20 * 1024 * 1024 // 20 MB for documents
+const ALLOWED_EXTENSIONS = ['md', 'txt', 'csv', 'docx', 'xlsx', 'pdf', 'pptx', 'jpg', 'jpeg', 'png']
 
 interface ExpandProjectChatProps {
   projectName: string
@@ -34,7 +36,7 @@ export function ExpandProjectChat({
 }: ExpandProjectChatProps) {
   const [input, setInput] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [pendingAttachments, setPendingAttachments] = useState<ImageAttachment[]>([])
+  const [pendingAttachments, setPendingAttachments] = useState<FileAttachment[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -95,20 +97,33 @@ export function ExpandProjectChat({
     }
   }
 
-  // File handling for image attachments
+  // File handling for attachments (images and documents)
   const handleFileSelect = useCallback((files: FileList | null) => {
     if (!files) return
 
     Array.from(files).forEach((file) => {
-      // Validate file type
-      if (!ALLOWED_TYPES.includes(file.type)) {
-        setError(`Invalid file type: ${file.name}. Only JPEG and PNG are supported.`)
-        return
+      // Resolve MIME type (browsers may not set it for .md files)
+      let mimeType = file.type
+      if (!mimeType || !ALL_ALLOWED_MIME_TYPES.includes(mimeType)) {
+        mimeType = resolveMimeType(file.name)
       }
 
-      // Validate file size
-      if (file.size > MAX_FILE_SIZE) {
-        setError(`File too large: ${file.name}. Maximum size is 5 MB.`)
+      // Validate file type
+      if (!ALL_ALLOWED_MIME_TYPES.includes(mimeType)) {
+        const ext = file.name.split('.').pop()?.toLowerCase()
+        if (!ext || !ALLOWED_EXTENSIONS.includes(ext)) {
+          setError(`Unsupported file type: ${file.name}. Supported: images (JPEG, PNG) and documents (MD, TXT, CSV, DOCX, XLSX, PDF, PPTX).`)
+          return
+        }
+        mimeType = resolveMimeType(file.name)
+      }
+
+      // Validate size based on type
+      const isImage = (IMAGE_MIME_TYPES as readonly string[]).includes(mimeType)
+      const maxSize = isImage ? MAX_IMAGE_SIZE : MAX_DOCUMENT_SIZE
+      const maxLabel = isImage ? '5 MB' : '20 MB'
+      if (file.size > maxSize) {
+        setError(`File too large: ${file.name}. Maximum size is ${maxLabel}.`)
         return
       }
 
@@ -118,12 +133,12 @@ export function ExpandProjectChat({
         const dataUrl = e.target?.result as string
         const base64Data = dataUrl.split(',')[1]
 
-        const attachment: ImageAttachment = {
+        const attachment: FileAttachment = {
           id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
           filename: file.name,
-          mimeType: file.type as 'image/jpeg' | 'image/png',
+          mimeType: mimeType as FileAttachment['mimeType'],
           base64Data,
-          previewUrl: dataUrl,
+          previewUrl: isImage ? dataUrl : '',
           size: file.size,
         }
 
@@ -291,11 +306,17 @@ export function ExpandProjectChat({
                   key={attachment.id}
                   className="relative group border-2 border-border p-1 bg-card rounded shadow-sm"
                 >
-                  <img
-                    src={attachment.previewUrl}
-                    alt={attachment.filename}
-                    className="w-16 h-16 object-cover rounded"
-                  />
+                  {isImageAttachment(attachment) ? (
+                    <img
+                      src={attachment.previewUrl}
+                      alt={attachment.filename}
+                      className="w-16 h-16 object-cover rounded"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 flex items-center justify-center bg-muted rounded">
+                      <FileText size={24} className="text-muted-foreground" />
+                    </div>
+                  )}
                   <button
                     onClick={() => handleRemoveAttachment(attachment.id)}
                     className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5 border-2 border-border hover:scale-110 transition-transform"
@@ -318,7 +339,7 @@ export function ExpandProjectChat({
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/jpeg,image/png"
+              accept="image/jpeg,image/png,.md,.txt,.csv,.docx,.xlsx,.pdf,.pptx"
               multiple
               onChange={(e) => handleFileSelect(e.target.files)}
               className="hidden"
@@ -330,7 +351,7 @@ export function ExpandProjectChat({
               disabled={connectionStatus !== 'connected'}
               variant="ghost"
               size="icon"
-              title="Attach image (JPEG, PNG - max 5MB)"
+              title="Attach files (images: JPEG/PNG up to 5MB, documents: MD, TXT, CSV, DOCX, XLSX, PDF, PPTX up to 20MB)"
             >
               <Paperclip size={18} />
             </Button>
@@ -364,7 +385,7 @@ export function ExpandProjectChat({
 
           {/* Help text */}
           <p className="text-xs text-muted-foreground mt-2">
-            Press Enter to send. Drag & drop or click <Paperclip size={12} className="inline" /> to attach images.
+            Press Enter to send. Drag & drop or click <Paperclip size={12} className="inline" /> to attach files.
           </p>
         </div>
       )}

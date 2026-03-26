@@ -6,10 +6,11 @@
  */
 
 import { memo } from 'react'
-import { Bot, User, Info } from 'lucide-react'
+import { Bot, User, Info, FileText } from 'lucide-react'
 import ReactMarkdown, { type Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { ChatMessage as ChatMessageType } from '../lib/types'
+import { isImageAttachment } from '../lib/types'
 import { Card } from '@/components/ui/card'
 
 interface ChatMessageProps {
@@ -104,21 +105,35 @@ export const ChatMessage = memo(function ChatMessage({ message }: ChatMessagePro
               </div>
             )}
 
-            {/* Display image attachments */}
+            {/* Display file attachments */}
             {attachments && attachments.length > 0 && (
               <div className={`flex flex-wrap gap-2 ${content ? 'mt-3' : ''}`}>
                 {attachments.map((attachment) => (
                   <div key={attachment.id} className="border border-border rounded p-1 bg-card">
-                    <img
-                      src={attachment.previewUrl}
-                      alt={attachment.filename}
-                      className="max-w-48 max-h-48 object-contain cursor-pointer hover:opacity-90 transition-opacity rounded"
-                      onClick={() => window.open(attachment.previewUrl, '_blank')}
-                      title={`${attachment.filename} (click to enlarge)`}
-                    />
-                    <span className="text-xs text-muted-foreground block mt-1 text-center">
-                      {attachment.filename}
-                    </span>
+                    {isImageAttachment(attachment) ? (
+                      <>
+                        <img
+                          src={attachment.previewUrl}
+                          alt={attachment.filename}
+                          className="max-w-48 max-h-48 object-contain cursor-pointer hover:opacity-90 transition-opacity rounded"
+                          onClick={() => window.open(attachment.previewUrl, '_blank')}
+                          title={`${attachment.filename} (click to enlarge)`}
+                        />
+                        <span className="text-xs text-muted-foreground block mt-1 text-center">
+                          {attachment.filename}
+                        </span>
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-2 px-2 py-1">
+                        <FileText size={16} className="text-muted-foreground flex-shrink-0" />
+                        <span className="text-xs text-muted-foreground">
+                          {attachment.filename}
+                        </span>
+                        <span className="text-xs text-muted-foreground/60">
+                          ({(attachment.size / 1024).toFixed(0)} KB)
+                        </span>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
