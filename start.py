@@ -255,7 +255,7 @@ def run_spec_creation(project_dir: Path) -> bool:
             print(f"Please ensure app_spec.txt exists in: {get_project_prompts_dir(project_dir)}")
             # If failed with non-zero exit and no spec, might be auth issue
             if result.returncode != 0:
-                print("\nIf you're having authentication issues, try running: claude login")
+                print("\nIf you're having authentication issues, set ANTHROPIC_API_KEY or try: claude login")
             return False
 
     except FileNotFoundError:
@@ -416,7 +416,7 @@ def run_agent(project_name: str, project_dir: Path) -> None:
                 print(f"\nAgent error:\n{stderr_output.strip()}")
                 # Still hint about auth if exit was unexpected
                 if "error" in stderr_output.lower() or "exception" in stderr_output.lower():
-                    print("\nIf this is an authentication issue, try running: claude login")
+                    print("\nIf this is an authentication issue, set ANTHROPIC_API_KEY or try: claude login")
 
     except KeyboardInterrupt:
         print("\n\nAgent interrupted. Run again to resume.")

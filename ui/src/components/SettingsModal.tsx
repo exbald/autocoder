@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Loader2, AlertCircle, Check, Moon, Sun, Eye, EyeOff, ShieldCheck } from 'lucide-react'
+import { Loader2, AlertCircle, AlertTriangle, Check, Moon, Sun, Eye, EyeOff, ShieldCheck } from 'lucide-react'
 import { useSettings, useUpdateSettings, useAvailableModels, useAvailableProviders } from '../hooks/useProjects'
 import { useTheme, THEMES } from '../hooks/useTheme'
 import type { ProviderInfo } from '../lib/types'
@@ -21,7 +21,7 @@ interface SettingsModalProps {
 }
 
 const PROVIDER_INFO_TEXT: Record<string, string> = {
-  claude: 'Default provider. Uses your Claude CLI credentials.',
+  claude: 'Default provider. Uses Claude CLI credentials. API key auth is recommended.',
   kimi: 'Get an API key at kimi.com',
   glm: 'Get an API key at open.bigmodel.cn',
   ollama: 'Run models locally. Install from ollama.com',
@@ -244,6 +244,15 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               <p className="text-xs text-muted-foreground">
                 {PROVIDER_INFO_TEXT[currentProvider] ?? ''}
               </p>
+
+              {currentProvider === 'claude' && (
+                <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20 mt-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
+                    Anthropic's policy may not permit using subscription-based auth (<code className="text-xs">claude login</code>) with third-party agents. Consider using an API key provider or setting the <code className="text-xs">ANTHROPIC_API_KEY</code> environment variable to avoid potential account issues.
+                  </AlertDescription>
+                </Alert>
+              )}
 
               {/* Auth Token Field */}
               {showAuthField && (

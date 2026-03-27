@@ -76,8 +76,8 @@ Examples:
   python autonomous_agent_demo.py --project-dir my-app --testing-ratio 0
 
 Authentication:
-  Uses Claude CLI authentication (run 'claude login' if not logged in)
-  Authentication is handled by start.bat/start.sh before this runs
+  Uses Claude CLI authentication. API key (ANTHROPIC_API_KEY) is recommended.
+  Alternatively run 'claude login', but note Anthropic's policy may restrict subscription auth.
         """,
     )
 

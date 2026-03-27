@@ -16,16 +16,16 @@ if ! command -v claude &> /dev/null; then
     echo "    The agent requires Claude CLI to work."
     echo "    Install it from: https://claude.ai/download"
     echo ""
-    echo "    After installing, run: claude login"
+    echo "    After installing, set ANTHROPIC_API_KEY or run: claude login"
     echo ""
 else
     echo "[OK] Claude CLI found"
     # Note: Claude CLI no longer stores credentials in ~/.claude/.credentials.json
     # We can't reliably check auth status without making an API call
     if [ -d "$HOME/.claude" ]; then
-        echo "     (If you're not logged in, run: claude login)"
+        echo "     (Set ANTHROPIC_API_KEY or run: claude login)"
     else
-        echo "[!] Claude CLI not configured - run 'claude login' first"
+        echo "[!] Claude CLI not configured - set ANTHROPIC_API_KEY or run 'claude login'"
     fi
 fi
 echo ""

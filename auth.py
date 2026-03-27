@@ -53,11 +53,16 @@ AUTH_ERROR_HELP_CLI = """
 
 Claude CLI requires authentication to work.
 
-To fix this, run:
+Option 1 (Recommended): Set an API key
+  export ANTHROPIC_API_KEY=your-key-here
+  Get a key at: https://console.anthropic.com/
+
+Option 2: Use subscription login
   claude login
 
-This will open a browser window to sign in.
-After logging in, try running this command again.
+  Note: Anthropic's policy may not permit using
+  subscription auth with third-party agents.
+  API key authentication is recommended.
 ==================================================
 """
 
@@ -69,11 +74,16 @@ AUTH_ERROR_HELP_SERVER = """
 
 Claude CLI requires authentication to work.
 
-To fix this, run:
+Option 1 (Recommended): Set an API key
+  export ANTHROPIC_API_KEY=your-key-here
+  Get a key at: https://console.anthropic.com/
+
+Option 2: Use subscription login
   claude login
 
-This will open a browser window to sign in.
-After logging in, try starting the agent again.
+  Note: Anthropic's policy may not permit using
+  subscription auth with third-party agents.
+  API key authentication is recommended.
 ================================================================================
 """
 

@@ -29,11 +29,12 @@ REM verify the CLI is installed and remind the user to login if needed
 set "CLAUDE_DIR=%USERPROFILE%\.claude"
 if exist "%CLAUDE_DIR%\" (
     echo [OK] Claude CLI directory found
-    echo      ^(If you're not logged in, run: claude login^)
+    echo      ^(Set ANTHROPIC_API_KEY or run: claude login^)
 ) else (
     echo [!] Claude CLI not configured
     echo.
-    echo Please run 'claude login' to authenticate before continuing.
+    echo Please set ANTHROPIC_API_KEY or run 'claude login' to authenticate.
+    echo Note: API key auth is recommended. See README for details.
     echo.
     pause
 )

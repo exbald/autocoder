@@ -4,6 +4,12 @@
 
 A long-running autonomous coding agent powered by the Claude Agent SDK. This tool can build complete applications over multiple sessions using a two-agent pattern (initializer + coding agent). Includes a React-based UI for monitoring progress in real-time.
 
+> [!WARNING]
+> **Authentication:** Anthropic's policy states that third-party developers may not offer `claude.ai` login or subscription-based rate limits for their products (including agents built on the Claude Agent SDK) unless previously approved. Using your Claude subscription with AutoForge may risk account suspension. We recommend using an API key from [console.anthropic.com](https://console.anthropic.com/) instead.
+
+> [!NOTE]
+> **This repository is no longer actively maintained.** Most agent coding tools now ship their own long-running harnesses, making this project less necessary. Feel free to fork and continue development on your own!
+
 ## Video Tutorial
 
 [![Watch the tutorial](https://img.youtube.com/vi/nKiPOxDpcJY/hqdefault.jpg)](https://youtu.be/nKiPOxDpcJY)
@@ -34,8 +40,8 @@ irm https://claude.ai/install.ps1 | iex
 
 You need one of the following:
 
-- **Claude Pro/Max Subscription** - Use `claude login` to authenticate (recommended)
-- **Anthropic API Key** - Pay-per-use from https://console.anthropic.com/
+- **Anthropic API Key** (recommended) - Pay-per-use from https://console.anthropic.com/
+- **Claude Pro/Max Subscription** - Use `claude login` to authenticate (see warning above)
 
 ---
 
@@ -101,7 +107,7 @@ This launches the React-based web UI at `http://localhost:5173` with:
 
 The start script will:
 1. Check if Claude CLI is installed
-2. Check if you're authenticated (prompt to run `claude login` if not)
+2. Check if you're authenticated (prompt to configure authentication if not)
 3. Create a Python virtual environment
 4. Install dependencies
 5. Launch the main menu
@@ -371,7 +377,7 @@ Edit `security.py` to add or remove commands from `ALLOWED_COMMANDS`.
 Install the Claude Code CLI using the instructions in the Prerequisites section.
 
 **"Not authenticated with Claude"**
-Run `claude login` to authenticate. The start script will prompt you to do this automatically.
+Set your API key via `ANTHROPIC_API_KEY` environment variable or the Settings UI. Alternatively, run `claude login` to use subscription credentials, but note that Anthropic's policy may not permit subscription-based auth for third-party agents.
 
 **"Appears to hang on first run"**
 This is normal. The initializer agent is generating detailed test cases, which takes significant time. Watch for `[Tool: ...]` output to confirm the agent is working.
