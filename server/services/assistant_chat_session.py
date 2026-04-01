@@ -281,7 +281,7 @@ class AssistantChatSession:
             self.client = ClaudeSDKClient(
                 options=ClaudeAgentOptions(
                     model=model,
-                    cli_path=system_cli,
+                    # cli_path=system_cli,  # Use SDK bundled CLI instead
                     # System prompt loaded from CLAUDE.md via setting_sources
                     # This avoids Windows command line length limit (~8191 chars)
                     setting_sources=["project"],

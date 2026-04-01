@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { Loader2, AlertCircle, AlertTriangle, Check, Moon, Sun, Eye, EyeOff, ShieldCheck } from 'lucide-react'
+import { Loader2, AlertCircle, AlertTriangle, Eye, EyeOff, ShieldCheck } from 'lucide-react'
 import { useSettings, useUpdateSettings, useAvailableModels, useAvailableProviders } from '../hooks/useProjects'
-import { useTheme, THEMES } from '../hooks/useTheme'
 import type { ProviderInfo } from '../lib/types'
 import {
   Dialog,
@@ -33,7 +32,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { data: modelsData } = useAvailableModels()
   const { data: providersData } = useAvailableProviders()
   const updateSettings = useUpdateSettings()
-  const { theme, setTheme, darkMode, toggleDarkMode } = useTheme()
 
   const [showAuthToken, setShowAuthToken] = useState(false)
   const [authTokenInput, setAuthTokenInput] = useState('')
@@ -151,77 +149,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         {/* Settings Content */}
         {settings && !isLoading && (
           <div className="space-y-6">
-            {/* Theme Selection */}
-            <div className="space-y-3">
-              <Label className="font-medium">Theme</Label>
-              <div className="grid gap-2">
-                {THEMES.map((themeOption) => (
-                  <button
-                    key={themeOption.id}
-                    onClick={() => setTheme(themeOption.id)}
-                    className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-colors text-left ${
-                      theme === themeOption.id
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50 hover:bg-muted/50'
-                    }`}
-                  >
-                    {/* Color swatches */}
-                    <div className="flex gap-0.5 shrink-0">
-                      <div
-                        className="w-5 h-5 rounded-sm border border-border/50"
-                        style={{ backgroundColor: themeOption.previewColors.background }}
-                      />
-                      <div
-                        className="w-5 h-5 rounded-sm border border-border/50"
-                        style={{ backgroundColor: themeOption.previewColors.primary }}
-                      />
-                      <div
-                        className="w-5 h-5 rounded-sm border border-border/50"
-                        style={{ backgroundColor: themeOption.previewColors.accent }}
-                      />
-                    </div>
-
-                    {/* Theme info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm">{themeOption.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {themeOption.description}
-                      </div>
-                    </div>
-
-                    {/* Checkmark */}
-                    {theme === themeOption.id && (
-                      <Check size={18} className="text-primary shrink-0" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Dark Mode Toggle */}
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="dark-mode" className="font-medium">
-                  Dark Mode
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Switch between light and dark appearance
-                </p>
-              </div>
-              <Button
-                id="dark-mode"
-                variant="outline"
-                size="sm"
-                onClick={toggleDarkMode}
-                className="gap-2"
-              >
-                {darkMode ? <Sun size={16} /> : <Moon size={16} />}
-                {darkMode ? 'Light' : 'Dark'}
-              </Button>
-            </div>
-
-            <hr className="border-border" />
-
             {/* API Provider Selection */}
             <div className="space-y-3">
               <Label className="font-medium">API Provider</Label>

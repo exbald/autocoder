@@ -9,6 +9,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { Send, Loader2, Wifi, WifiOff, Plus, History } from 'lucide-react'
 import { useAssistantChat } from '../hooks/useAssistantChat'
+import { useSettings } from '../hooks/useProjects'
 import { ChatMessage as ChatMessageComponent } from './ChatMessage'
 import { ConversationHistory } from './ConversationHistory'
 import { QuestionOptions } from './QuestionOptions'
@@ -170,6 +171,9 @@ export function AssistantChat({
     return Array.from(messageMap.values())
   }, [initialMessages, messages, conversationId, isLoadingConversation])
 
+  const { data: settings } = useSettings()
+  const modelLabel = settings?.api_model || settings?.model || 'default'
+
   return (
     <div className="flex flex-col h-full">
       {/* Header with actions and connection status */}
@@ -206,8 +210,11 @@ export function AssistantChat({
           />
         </div>
 
-        {/* Connection status */}
+        {/* Model & Connection status */}
         <div className="flex items-center gap-2">
+          <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded" title={`Model: ${modelLabel}`}>
+            {modelLabel}
+          </span>
           {connectionStatus === 'connected' ? (
             <>
               <Wifi size={14} className="text-green-500" />

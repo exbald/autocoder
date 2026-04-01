@@ -1,0 +1,36 @@
+services:
+  autocoder:
+    build: .
+    container_name: autoforge
+    restart: unless-stopped
+    command: ["python", "start_ui.py", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      - AUTOFORGE_ALLOW_REMOTE=1
+    volumes:
+      - /opt/autoforge/projects:/app/generations
+      - /opt/autoforge/claude-config:/app/generations/.claude
+      - /opt/autoforge/claude-config/.credentials.json:/home/autoforge/.claude/.credentials.json
+    networks:
+      - coolify
+    labels:
+      - "traefik.enable=true"
+      # Main UI (port 8000)
+      - "traefik.http.routers.autocoder.rule=Host(`autocoder.savantstack.com`)"
+      - "traefik.http.routers.autocoder.entrypoints=https"
+      - "traefik.http.routers.autocoder.tls=true"
+      - "traefik.http.routers.autocoder.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.autocoder.middlewares=autocoder-auth"
+      - "traefik.http.routers.autocoder.service=autocoder-svc"
+      - "traefik.http.middlewares.autocoder-auth.basicauth.users=exbald:$$apr1$$3wgxZxdr$$JF.8bIqJjk2AaAi5cfzqc0"
+      - "traefik.http.services.autocoder-svc.loadbalancer.server.port=8000"
+      # Dev preview (port 3000)
+      - "traefik.http.routers.autocoder-dev.rule=Host(`dev.autocoder.savantstack.com`)"
+      - "traefik.http.routers.autocoder-dev.entrypoints=https"
+      - "traefik.http.routers.autocoder-dev.tls=true"
+      - "traefik.http.routers.autocoder-dev.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.autocoder-dev.service=autocoder-dev-svc"
+      - "traefik.http.services.autocoder-dev-svc.loadbalancer.server.port=3000"
+
+networks:
+  coolify:
+    external: true

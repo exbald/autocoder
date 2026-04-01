@@ -42,7 +42,7 @@ export const ChatMessage = memo(function ChatMessage({ message }: ChatMessagePro
     user: {
       icon: User,
       bgColor: 'bg-primary',
-      textColor: 'text-primary-foreground',
+      textColor: 'text-white',
       align: 'justify-end',
       bubbleAlign: 'items-end',
       iconBg: 'bg-primary',

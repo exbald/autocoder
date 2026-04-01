@@ -671,11 +671,13 @@ API_PROVIDERS: dict[str, dict[str, Any]] = {
         "requires_auth": True,
         "auth_env_var": "ANTHROPIC_AUTH_TOKEN",
         "models": [
+            {"id": "glm-5.1", "name": "GLM 5.1"},
+            {"id": "glm-5-turbo", "name": "GLM 5 Turbo"},
             {"id": "glm-5", "name": "GLM 5"},
             {"id": "glm-4.7", "name": "GLM 4.7"},
             {"id": "glm-4.5-air", "name": "GLM 4.5 Air"},
         ],
-        "default_model": "glm-4.7",
+        "default_model": "glm-5.1",
     },
     "azure": {
         "name": "Azure Anthropic (Claude)",

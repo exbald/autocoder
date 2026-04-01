@@ -18,6 +18,11 @@ from pathlib import Path
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
+# Docker: Set HOME for Path.home() to resolve to the generations directory
+if os.path.exists("/app/generations"):
+    os.environ["HOME"] = "/app/generations"
+    os.environ["USERPROFILE"] = "/app/generations"
+
 from dotenv import load_dotenv
 
 # Load environment variables from .env file if present
