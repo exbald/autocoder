@@ -14,7 +14,7 @@ import time
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal, cast
 
 from sqlalchemy import Boolean, Column, DateTime, Integer, String, create_engine, text
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
@@ -46,14 +46,17 @@ def _migrate_registry_dir() -> None:
 # Available models with display names
 # To add a new model: add an entry here with {"id": "model-id", "name": "Display Name"}
 AVAILABLE_MODELS = [
-    {"id": "claude-opus-4-6", "name": "Claude Opus"},
-    {"id": "claude-sonnet-4-5-20250929", "name": "Claude Sonnet"},
+    {"id": "claude-opus-4-7", "name": "Claude Opus"},
+    {"id": "claude-sonnet-4-6", "name": "Claude Sonnet"},
 ]
 
 # Map legacy model IDs to their current replacements.
 # Used by get_all_settings() to auto-migrate stale values on first read after upgrade.
 LEGACY_MODEL_MAP = {
-    "claude-opus-4-5-20251101": "claude-opus-4-6",
+    "claude-opus-4-5-20251101": "claude-opus-4-7",
+    "claude-opus-4-6": "claude-opus-4-7",
+    "claude-sonnet-4-5": "claude-sonnet-4-6",
+    "claude-sonnet-4-5-20250929": "claude-sonnet-4-6",
 }
 
 # List of valid model IDs (derived from AVAILABLE_MODELS)
@@ -65,7 +68,15 @@ VALID_MODELS = [m["id"] for m in AVAILABLE_MODELS]
 _env_default_model = os.getenv("ANTHROPIC_DEFAULT_OPUS_MODEL")
 if _env_default_model is not None:
     _env_default_model = _env_default_model.strip()
-DEFAULT_MODEL = _env_default_model or "claude-opus-4-6"
+# Auto-remap stale env-provided values (e.g. user's .env still pins 4.6)
+if _env_default_model and _env_default_model in LEGACY_MODEL_MAP:
+    logging.getLogger(__name__).warning(
+        "ANTHROPIC_DEFAULT_OPUS_MODEL=%s is legacy; remapping to %s. "
+        "Update your .env to silence this warning.",
+        _env_default_model, LEGACY_MODEL_MAP[_env_default_model],
+    )
+    _env_default_model = LEGACY_MODEL_MAP[_env_default_model]
+DEFAULT_MODEL = _env_default_model or "claude-opus-4-7"
 
 # Ensure env-provided DEFAULT_MODEL is in VALID_MODELS for validation consistency
 # (idempotent: only adds if missing, doesn't alter AVAILABLE_MODELS semantics)
@@ -671,6 +682,28 @@ def get_setting(key: str, default: str | None = None) -> str | None:
         return default
 
 
+# Valid Claude Code reasoning/effort levels. Must match the CLI's --effort
+# choices (low, medium, high, xhigh, max) — note: the SDK's Literal type at
+# 0.1.61 omits "xhigh", but the string is forwarded to the CLI as-is and
+# accepted there.
+EffortLevel = Literal["low", "medium", "high", "xhigh", "max"]
+VALID_EFFORT_LEVELS: tuple[EffortLevel, ...] = ("low", "medium", "high", "xhigh", "max")
+DEFAULT_EFFORT: EffortLevel = "xhigh"
+
+
+def get_effort_setting() -> EffortLevel:
+    """
+    Read the global reasoning-effort setting, falling back to ``xhigh``.
+
+    Unknown/invalid stored values are treated as missing so a DB corruption or
+    schema drift can't force the CLI into an unsupported mode.
+    """
+    value = get_setting("effort")
+    if value in VALID_EFFORT_LEVELS:
+        return cast(EffortLevel, value)
+    return DEFAULT_EFFORT
+
+
 def set_setting(key: str, value: str) -> None:
     """
     Set a setting value (creates or updates).
@@ -699,7 +732,7 @@ def get_all_settings() -> dict[str, str]:
     """
     Get all settings as a dictionary.
 
-    Automatically migrates legacy model IDs (e.g. claude-opus-4-5-20251101 -> claude-opus-4-6)
+    Automatically migrates legacy model IDs (e.g. claude-opus-4-6 -> claude-opus-4-7)
     on first read after upgrade. This is a one-time silent migration.
 
     Returns:
@@ -747,10 +780,10 @@ API_PROVIDERS: dict[str, dict[str, Any]] = {
         "base_url": None,
         "requires_auth": False,
         "models": [
-            {"id": "claude-opus-4-6", "name": "Claude Opus"},
-            {"id": "claude-sonnet-4-5-20250929", "name": "Claude Sonnet"},
+            {"id": "claude-opus-4-7", "name": "Claude Opus"},
+            {"id": "claude-sonnet-4-6", "name": "Claude Sonnet"},
         ],
-        "default_model": "claude-opus-4-6",
+        "default_model": "claude-opus-4-7",
     },
     "kimi": {
         "name": "Kimi K2.5 (Moonshot)",
@@ -778,11 +811,11 @@ API_PROVIDERS: dict[str, dict[str, Any]] = {
         "requires_auth": True,
         "auth_env_var": "ANTHROPIC_API_KEY",
         "models": [
-            {"id": "claude-opus-4-6", "name": "Claude Opus"},
-            {"id": "claude-sonnet-4-5", "name": "Claude Sonnet"},
+            {"id": "claude-opus-4-7", "name": "Claude Opus"},
+            {"id": "claude-sonnet-4-6", "name": "Claude Sonnet"},
             {"id": "claude-haiku-4-5", "name": "Claude Haiku"},
         ],
-        "default_model": "claude-opus-4-6",
+        "default_model": "claude-opus-4-7",
     },
     "ollama": {
         "name": "Ollama (Local)",

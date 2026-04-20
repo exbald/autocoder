@@ -26,6 +26,7 @@ from registry import (
     AVAILABLE_MODELS,
     DEFAULT_MODEL,
     get_all_settings,
+    get_effort_setting,
     get_setting,
     set_setting,
 )
@@ -95,6 +96,8 @@ def _parse_bool(value: str | None, default: bool = False) -> bool:
     return value.lower() == "true"
 
 
+
+
 @router.get("", response_model=SettingsResponse)
 async def get_settings():
     """Get current global settings."""
@@ -114,6 +117,7 @@ async def get_settings():
         playwright_headless=True,  # Always headless - embedded browser view replaces desktop windows
         batch_size=_parse_int(all_settings.get("batch_size"), 3),
         testing_batch_size=_parse_int(all_settings.get("testing_batch_size"), 3),
+        effort=get_effort_setting(),
         api_provider=api_provider,
         api_base_url=all_settings.get("api_base_url"),
         api_has_auth_token=bool(all_settings.get("api_auth_token")),
@@ -141,6 +145,9 @@ async def update_settings(update: SettingsUpdate):
 
     if update.testing_batch_size is not None:
         set_setting("testing_batch_size", str(update.testing_batch_size))
+
+    if update.effort is not None:
+        set_setting("effort", update.effort)
 
     # API provider settings
     if update.api_provider is not None:
@@ -182,6 +189,7 @@ async def update_settings(update: SettingsUpdate):
         playwright_headless=True,  # Always headless - embedded browser view replaces desktop windows
         batch_size=_parse_int(all_settings.get("batch_size"), 3),
         testing_batch_size=_parse_int(all_settings.get("testing_batch_size"), 3),
+        effort=get_effort_setting(),
         api_provider=api_provider,
         api_base_url=all_settings.get("api_base_url"),
         api_has_auth_token=bool(all_settings.get("api_auth_token")),

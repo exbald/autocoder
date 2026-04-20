@@ -288,21 +288,22 @@ export function useValidatePath() {
 // Default models response for placeholder (until API responds)
 const DEFAULT_MODELS: ModelsResponse = {
   models: [
-    { id: 'claude-opus-4-6', name: 'Claude Opus' },
-    { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet' },
+    { id: 'claude-opus-4-7', name: 'Claude Opus' },
+    { id: 'claude-sonnet-4-6', name: 'Claude Sonnet' },
   ],
-  default: 'claude-opus-4-6',
+  default: 'claude-opus-4-7',
 }
 
 const DEFAULT_SETTINGS: Settings = {
   yolo_mode: false,
-  model: 'claude-opus-4-6',
+  model: 'claude-opus-4-7',
   glm_mode: false,
   ollama_mode: false,
   testing_agent_ratio: 1,
   playwright_headless: true,
   batch_size: 3,
   testing_batch_size: 3,
+  effort: 'xhigh',
   api_provider: 'claude',
   api_base_url: null,
   api_has_auth_token: false,
@@ -311,7 +312,7 @@ const DEFAULT_SETTINGS: Settings = {
 
 const DEFAULT_PROVIDERS: ProvidersResponse = {
   providers: [
-    { id: 'claude', name: 'Claude (Anthropic)', base_url: null, models: DEFAULT_MODELS.models, default_model: 'claude-opus-4-6', requires_auth: false },
+    { id: 'claude', name: 'Claude (Anthropic)', base_url: null, models: DEFAULT_MODELS.models, default_model: 'claude-opus-4-7', requires_auth: false },
   ],
   current: 'claude',
 }

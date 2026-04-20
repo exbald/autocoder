@@ -10,7 +10,7 @@ import { useState } from 'react'
 import { Loader2, AlertCircle, AlertTriangle, Check, Moon, Sun, Eye, EyeOff, ShieldCheck, Settings } from 'lucide-react'
 import { useSettings, useUpdateSettings, useAvailableModels, useAvailableProviders } from '@/hooks/useProjects'
 import { useTheme, THEMES } from '@/hooks/useTheme'
-import type { ProviderInfo } from '@/lib/types'
+import type { EffortLevel, ProviderInfo } from '@/lib/types'
 import { Switch } from '@/components/ui/switch'
 import { Slider } from '@/components/ui/slider'
 import { Label } from '@/components/ui/label'
@@ -65,6 +65,12 @@ export function SettingsView() {
   const handleTestingBatchSizeChange = (size: number) => {
     if (!updateSettings.isPending) {
       updateSettings.mutate({ testing_batch_size: size })
+    }
+  }
+
+  const handleEffortChange = (level: EffortLevel) => {
+    if (!updateSettings.isPending) {
+      updateSettings.mutate({ effort: level })
     }
   }
 
@@ -419,6 +425,30 @@ export function SettingsView() {
                     onCheckedChange={handleYoloToggle}
                     disabled={isSaving}
                   />
+                </div>
+
+                {/* Reasoning Effort */}
+                <div className="space-y-2">
+                  <Label className="font-medium">Reasoning Effort</Label>
+                  <p className="text-sm text-muted-foreground">
+                    How deeply Claude thinks before responding. xhigh is recommended for autonomous coding.
+                  </p>
+                  <div className="flex rounded-lg border overflow-hidden">
+                    {(['low', 'medium', 'high', 'xhigh', 'max'] as EffortLevel[]).map((level) => (
+                      <button
+                        key={level}
+                        onClick={() => handleEffortChange(level)}
+                        disabled={isSaving}
+                        className={`flex-1 py-2 px-3 text-sm font-medium transition-colors ${
+                          (settings.effort ?? 'xhigh') === level
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-background text-foreground hover:bg-muted'
+                        } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        {level}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Regression Agents */}

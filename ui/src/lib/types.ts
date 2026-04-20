@@ -642,6 +642,8 @@ export interface ProvidersResponse {
   current: string
 }
 
+export type EffortLevel = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
+
 export interface Settings {
   yolo_mode: boolean
   model: string
@@ -651,6 +653,7 @@ export interface Settings {
   playwright_headless: boolean
   batch_size: number  // Features per coding agent batch (1-15)
   testing_batch_size: number  // Features per testing agent batch (1-15)
+  effort: EffortLevel  // Reasoning effort passed to Claude Code (--effort)
   api_provider: string
   api_base_url: string | null
   api_has_auth_token: boolean
@@ -663,6 +666,7 @@ export interface SettingsUpdate {
   testing_agent_ratio?: number
   batch_size?: number
   testing_batch_size?: number
+  effort?: EffortLevel
   api_provider?: string
   api_base_url?: string
   api_auth_token?: string

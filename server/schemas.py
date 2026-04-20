@@ -18,7 +18,7 @@ _root = Path(__file__).parent.parent
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from registry import DEFAULT_MODEL, VALID_MODELS
+from registry import DEFAULT_MODEL, LEGACY_MODEL_MAP, VALID_MODELS
 
 # ============================================================================
 # Project Schemas
@@ -484,6 +484,7 @@ class SettingsResponse(BaseModel):
     playwright_headless: bool = True
     batch_size: int = 3  # Features per coding agent batch (1-15)
     testing_batch_size: int = 3  # Features per testing agent batch (1-15)
+    effort: Literal["low", "medium", "high", "xhigh", "max"] = "xhigh"
     api_provider: str = "claude"
     api_base_url: str | None = None
     api_has_auth_token: bool = False  # Never expose actual token
@@ -504,6 +505,7 @@ class SettingsUpdate(BaseModel):
     playwright_headless: bool | None = None
     batch_size: int | None = None  # Features per agent batch (1-15)
     testing_batch_size: int | None = None  # Features per testing agent batch (1-15)
+    effort: Literal["low", "medium", "high", "xhigh", "max"] | None = None
     api_provider: str | None = None
     api_base_url: str | None = Field(None, max_length=500)
     api_auth_token: str | None = Field(None, max_length=500)  # Write-only, never returned
@@ -520,12 +522,16 @@ class SettingsUpdate(BaseModel):
 
     @field_validator('model')
     @classmethod
-    def validate_model(cls, v: str | None, info) -> str | None:  # type: ignore[override]
+    def validate_model(cls, v: str | None, info) -> str | None:
         if v is not None:
             # Skip VALID_MODELS check when using an alternative API provider
             api_provider = info.data.get("api_provider")
             if api_provider and api_provider != "claude":
                 return v
+            # Transparently accept legacy IDs so in-flight clients don't 422
+            # during an upgrade window; LEGACY_MODEL_MAP already covers migration.
+            if v in LEGACY_MODEL_MAP:
+                v = LEGACY_MODEL_MAP[v]
             if v not in VALID_MODELS:
                 raise ValueError(f"Invalid model. Must be one of: {VALID_MODELS}")
         return v

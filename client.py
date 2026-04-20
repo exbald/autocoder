@@ -38,7 +38,7 @@ def convert_model_for_vertex(model: str) -> str:
 
     Vertex AI uses @ to separate model name from version (e.g., claude-sonnet-4-5@20250929)
     while the Anthropic API uses - (e.g., claude-sonnet-4-5-20250929).
-    Models without a date suffix (e.g., claude-opus-4-6) pass through unchanged.
+    Models without a date suffix (e.g., claude-opus-4-7) pass through unchanged.
 
     Args:
         model: Model name in Anthropic format (with hyphens)
@@ -342,8 +342,10 @@ def create_client(
     # Uses get_effective_sdk_env() which reads provider settings from the database,
     # ensuring UI-configured alternative providers (GLM, Ollama, Kimi, Custom) propagate
     # correctly to the Claude CLI subprocess
-    from registry import get_effective_sdk_env
+    from registry import get_effective_sdk_env, get_effort_setting
     sdk_env = get_effective_sdk_env()
+    effort = get_effort_setting()
+    print(f"   - Reasoning effort: {effort}")
 
     # Detect alternative API mode (Ollama, GLM, or Vertex AI)
     base_url = sdk_env.get("ANTHROPIC_BASE_URL", "")
@@ -452,6 +454,9 @@ def create_client(
     return ClaudeSDKClient(
         options=ClaudeAgentOptions(
             model=model,
+            # SDK 0.1.61's effort Literal omits "xhigh" but the CLI's
+            # --effort flag accepts it; the SDK forwards the string unchanged.
+            effort=effort,  # type: ignore[arg-type]
             cli_path=system_cli,  # Use system CLI to avoid bundled Bun crash (exit code 3)
             system_prompt="You are an expert full-stack developer building a production-quality web application.",
             setting_sources=["project"],  # Enable skills, commands, and CLAUDE.md from project dir
